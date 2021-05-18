@@ -1,7 +1,10 @@
+pub trait Node {}
+
 pub mod expressions {
     pub struct Constant {
         value: u32,
     }
+    impl super::Node for Constant {}
     impl Constant {
         pub fn new(value: u32) -> Constant {
             Constant { value }
@@ -13,6 +16,7 @@ pub mod statements {
     pub struct Return {
         value: super::expressions::Constant,
     }
+    impl super::Node for Return {}
     impl Return {
         pub fn new(value: super::expressions::Constant) -> Return {
             Return { value }
@@ -24,6 +28,7 @@ pub struct Function {
     name: String,
     body: statements::Return,
 }
+impl Node for Function {}
 impl Function {
     pub fn new(name: &str, body: statements::Return) -> Function {
         Function {
@@ -36,6 +41,7 @@ impl Function {
 pub struct Program {
     value: Function,
 }
+impl Node for Program {}
 impl Program {
     pub fn new(value: Function) -> Program {
         Program { value }
