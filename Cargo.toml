@@ -1,5 +1,5 @@
 [package]
-name = "Fe2O3-CC"
+name = "rust_cc"
 version = "0.1.0"
 authors = ["khayliang <khayliang@gmail.com>"]
 edition = "2018"
