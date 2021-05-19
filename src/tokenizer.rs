@@ -72,8 +72,6 @@ mod tests {
         let parsed_tokens = tokenize(code);
         for (idx, token) in parsed_tokens.iter().enumerate() {
             assert_eq!(&correct_tokens[idx], token);
-
         }
-
     }
 }
