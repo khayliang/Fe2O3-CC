@@ -1,3 +1,15 @@
+#[derive(Debug, PartialEq, Clone)]
+enum Tokens {
+    Keyword(String),
+    Identifier(String),
+    Integer(u32),
+    OpenBrace,
+    CloseBrace,
+    OpenBracket,
+    CloseBracket,
+    Semicolon,
+}
+
 pub fn tokenize(code: &str) -> Vec<&str> {
     let mut tokens: Vec<&str> = Vec::new();
 
@@ -36,7 +48,7 @@ mod tests {
         let code = "";
         let correct_tokens: Vec<Tokens> = vec![];
         let parsed_tokens = tokenize(code);
-        assert_eq!(correct_tokens, parsed_tokens);
+        assert_eq!(correct_tokens.len(), parsed_tokens.len());
     }
 
     #[test]
@@ -47,17 +59,21 @@ mod tests {
             }
         ";
         let correct_tokens = vec![
-            Tokens::Keyword("int"), 
-            Tokens::Identifier("main"), 
-            Tokens::OpenBracket, 
-            Tokens::CloseBracket, 
-            Tokens::OpenBrace, 
-            Tokens::Keyword("return"), 
+            Tokens::Keyword("int".to_string()),
+            Tokens::Identifier("main".to_string()),
+            Tokens::OpenBracket,
+            Tokens::CloseBracket,
+            Tokens::OpenBrace,
+            Tokens::Keyword("return".to_string()),
             Tokens::Integer(2),
             Tokens::Semicolon,
-            Tokens::CloseBrace
-        ]
+            Tokens::CloseBrace,
+        ];
         let parsed_tokens = tokenize(code);
-        assert_eq!(correct_tokens, parsed_tokens);
+        for (idx, token) in parsed_tokens.iter().enumerate() {
+            assert_eq!(&correct_tokens[idx], token);
+
+        }
+
     }
 }
