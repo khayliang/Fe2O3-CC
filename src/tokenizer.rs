@@ -180,28 +180,4 @@ mod tests {
             assert_eq!(&correct_tokens[idx], token);
         }
     }
-
-    #[test]
-    fn test_tokenize_func_tokenizes_string() {
-        let code = "
-            int main() {
-                return 2;
-            }
-        ";
-        let correct_tokens = vec![
-            Token::Keyword("int".to_string()),
-            Token::Identifier("main".to_string()),
-            Token::OpenBracket,
-            Token::CloseBracket,
-            Token::OpenBrace,
-            Token::Keyword("return".to_string()),
-            Token::Integer(2),
-            Token::Semicolon,
-            Token::CloseBrace,
-        ];
-        let parsed_tokens = tokenize(code);
-        for (idx, token) in parsed_tokens.iter().enumerate() {
-            assert_eq!(&correct_tokens[idx], token);
-        }
-    }
 }
