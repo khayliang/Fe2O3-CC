@@ -158,12 +158,12 @@ mod tests {
     }
 
     fn create_test_return_statement() -> statements::Return {
-        statements::Return::new(Box::new(create_test_constant_expression()))  
+        statements::Return::new(Box::new(create_test_constant_expression()))
     }
 
     fn create_test_function() -> Function {
         let identifier = String::from("main");
-        let body: Vec<Box<Statement>> = vec![Box::new(create_test_return_statement())];
+        let body: Vec<Box<dyn Statement>> = vec![Box::new(create_test_return_statement())];
         let return_type = Type::Integer(0);
         Function::new(return_type, identifier, body)
     }
@@ -221,6 +221,5 @@ mod tests {
         "};
         let program_formatted: String = format!("{}", main_program);
         assert_eq!(expected_format, program_formatted);
-
     }
 }
