@@ -3,7 +3,7 @@
 pub enum Token {
     Keyword(String),
     Identifier(String),
-    Integer(i32),
+    Integer(String),
     OpenBrace,
     CloseBrace,
     OpenBracket,
@@ -17,8 +17,7 @@ impl TokenFactory {
         let token_string = token.to_string();
 
         if is_string_number(&token_string) {
-            let number: i32 = string_to_number(&token_string);
-            return Token::Integer(number);
+            return Token::Integer(token_string);
         } else if token_string.len() == 1 {
             let token_ch = token_string.chars().nth(0).unwrap();
             match token_ch {
@@ -103,7 +102,10 @@ mod tests {
     #[test]
     fn test_token_factory_builds_integer_constants() {
         let tokens = ["2", "23"];
-        let enums = vec![Token::Integer(2), Token::Integer(23)];
+        let enums = vec![
+            Token::Integer("2".to_string()),
+            Token::Integer("23".to_string()),
+        ];
         for (idx, token_str) in tokens.iter().enumerate() {
             assert_eq!(&enums[idx], &TokenFactory::create(token_str));
         }
@@ -140,7 +142,7 @@ mod tests {
             Token::CloseBracket,
             Token::OpenBrace,
             Token::Keyword("return".to_string()),
-            Token::Integer(2),
+            Token::Integer("2".to_string()),
             Token::Semicolon,
             Token::CloseBrace,
         ];
@@ -171,7 +173,7 @@ mod tests {
             Token::CloseBracket,
             Token::OpenBrace,
             Token::Keyword("return".to_string()),
-            Token::Integer(2),
+            Token::Integer("2".to_string()),
             Token::Semicolon,
             Token::CloseBrace,
         ];
