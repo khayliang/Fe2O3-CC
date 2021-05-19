@@ -30,10 +30,10 @@ impl Node for dyn Statement {}
 pub mod statements {
     use super::*;
     pub struct Return {
-        expression: Box<Expression>,
+        expression: Box<dyn Expression>,
     }
     impl Return {
-        pub fn new(expression: Box<Expression>) -> Return {
+        pub fn new(expression: Box<dyn Expression>) -> Return {
             Return { expression }
         }
     }
@@ -43,11 +43,11 @@ pub mod statements {
 pub struct Function {
     return_type: Type,
     name: String,
-    body: Vec<Box<Statement>>,
+    body: Vec<Box<dyn Statement>>,
 }
 impl Node for Function {}
 impl Function {
-    pub fn new(return_type: Type, name: String, body: Vec<Box<Statement>>) -> Function {
+    pub fn new(return_type: Type, name: String, body: Vec<Box<dyn Statement>>) -> Function {
         Function {
             return_type,
             name: name,
