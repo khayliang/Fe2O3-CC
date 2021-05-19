@@ -30,7 +30,7 @@ impl Node for dyn Statement {}
 pub mod statements {
     use super::*;
     pub struct Return {
-        expression: Box<dyn Expression>,
+        pub expression: Box<dyn Expression>,
     }
     impl Return {
         pub fn new(expression: Box<dyn Expression>) -> Return {
@@ -41,9 +41,9 @@ pub mod statements {
 }
 
 pub struct Function {
-    return_type: Type,
-    name: String,
-    body: Vec<Box<dyn Statement>>,
+    pub return_type: Type,
+    pub name: String,
+    pub body: Vec<Box<dyn Statement>>,
 }
 impl Node for Function {}
 impl Function {
@@ -57,7 +57,7 @@ impl Function {
 }
 
 pub struct Program {
-    root: Function,
+    pub root: Function,
 }
 impl Node for Program {}
 impl Program {
@@ -82,7 +82,7 @@ mod tests {
         let constant = expressions::Constant::new(integer);
         assert_eq!(integer, constant.evaluate());
     }
-
+    
     #[test]
     fn test_program() {
         let integer = Type::Integer(2);
