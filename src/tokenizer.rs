@@ -1,5 +1,5 @@
+// TODO: Use Number token instead of Integer to support decimals
 #[derive(Debug, PartialEq, Clone)]
-
 pub enum Token {
     Keyword(String),
     Identifier(String),
@@ -51,6 +51,7 @@ fn string_to_number(s: &String) -> i32 {
     s.parse::<i32>().expect(&error_str)
 }
 
+// TODO: cleanup tokenize function
 pub fn tokenize(code: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
 
