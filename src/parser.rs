@@ -1,12 +1,12 @@
 use crate::syntax::*;
 use crate::tokenizer::Token;
 
-struct TokenIteratorContainer<'a> {
+pub struct TokenIteratorContainer<'a> {
     iterator: std::iter::Peekable<std::slice::Iter<'a, Token<'a>>>,
 }
 
 impl<'a> TokenIteratorContainer<'a> {
-    fn new(token: &'a Vec<Token>) -> TokenIteratorContainer<'a> {
+    pub fn new(token: &'a Vec<Token>) -> TokenIteratorContainer<'a> {
         let iterator = token.iter().peekable();
         TokenIteratorContainer { iterator }
     }
@@ -23,6 +23,7 @@ fn string_to_number(s: &str) -> i32 {
 
 fn parse_expression(iterator: &mut TokenIteratorContainer) -> Result<Box<dyn Expression>, String> {
     let mut tokens_iter = iterator.get_iter();
+    // TODO: refactor this to be more idiomatic and rusty
     while let Some(token) = tokens_iter.next() {
         match token {
             Token::Integer(val) => {
@@ -41,19 +42,34 @@ fn parse_expression(iterator: &mut TokenIteratorContainer) -> Result<Box<dyn Exp
     }
     return Err(String::from("Something went wrong"));
 }
-pub fn parse_statement(tokens: &[Token]) -> Result<Box<dyn Statement>, String> {
-    fn create_test_integer() -> Type {
-        Type::Integer(2)
+fn parse_statement(iterator: &mut TokenIteratorContainer) -> Result<Box<dyn Statement>, String> {
+    let tokens_iter = iterator.get_iter();
+    // TODO: refactor this to be more idiomatic and rusty
+    while let Some(token) = tokens_iter.next() {
+        match token {
+            Token::Keyword(keyword) => match *keyword {
+                "return" => {
+                    let expression = match parse_expression(iterator) {
+                        Ok(expression) => expression,
+                        Err(msg) => return Err(msg),
+                    };
+                    let return_statement = Box::new(statements::Return::new(expression));
+                    return Ok(return_statement);
+                }
+                _ => {
+                    let mut msg = String::from("Invalid syntax: ");
+                    msg.push_str(keyword);
+                    return Err(msg);
+                }
+            },
+            _ => {
+                let mut msg = String::from("Invalid syntax: ");
+                msg.push_str(&format!("{:?}", token));
+                return Err(msg);
+            }
+        }
     }
-
-    fn create_test_constant_expression() -> expressions::Constant {
-        expressions::Constant::new(create_test_integer())
-    }
-
-    fn create_test_return_statement() -> statements::Return {
-        statements::Return::new(Box::new(create_test_constant_expression()))
-    }
-    Ok(Box::new(create_test_return_statement()))
+    return Err(String::from("Something went wrong"));
 }
 /*
 fn parse(tokens: Vec<Token>) -> Program {
@@ -64,28 +80,6 @@ fn parse(tokens: Vec<Token>) -> Program {
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn create_test_integer() -> Type {
-        Type::Integer(2)
-    }
-
-    fn create_test_constant_expression() -> expressions::Constant {
-        expressions::Constant::new(create_test_integer())
-    }
-
-    fn create_test_return_statement() -> statements::Return {
-        statements::Return::new(Box::new(create_test_constant_expression()))
-    }
-
-    fn create_test_function() -> Function {
-        let identifier = String::from("main");
-        let body: Vec<Box<dyn Statement>> = vec![Box::new(create_test_return_statement())];
-        let return_type = Type::Integer(0);
-        Function::new(return_type, identifier, body)
-    }
-
-    fn create_test_program() -> Program {
-        Program::new(create_test_function())
-    }
 
     #[test]
     fn test_token_iterator() {
@@ -104,7 +98,7 @@ mod tests {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
         };
-        let correct_expression = create_test_constant_expression();
+        let correct_expression = test_utils::create_test_constant_expression();
         let correct_format = format!("{}", correct_expression);
         let test_format = format!("{}", expression);
         assert_eq!(correct_format, test_format);
@@ -117,11 +111,12 @@ mod tests {
             Token::Integer("2"),
             Token::Semicolon,
         ];
-        let return_statement: Box<dyn Statement> = match parse_statement(&tokens) {
+        let mut token_iterator = TokenIteratorContainer::new(&tokens);
+        let return_statement: Box<dyn Statement> = match parse_statement(&mut token_iterator) {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
         };
-        let correct_expression = create_test_return_statement();
+        let correct_expression = test_utils::create_test_return_statement();
         let correct_format = format!("{}", correct_expression);
         let test_format = format!("{}", return_statement);
         assert_eq!(correct_format, test_format);

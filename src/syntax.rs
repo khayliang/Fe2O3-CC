@@ -144,33 +144,39 @@ impl fmt::Display for Program {
         write!(f, "PROGRAM_START:\n{}", self.root)
     }
 }
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use indoc::indoc;
 
-    fn create_test_integer() -> Type {
+pub mod test_utils {
+    use super::*;
+
+    pub fn create_test_integer() -> Type {
         Type::Integer(2)
     }
 
-    fn create_test_constant_expression() -> expressions::Constant {
+    pub fn create_test_constant_expression() -> expressions::Constant {
         expressions::Constant::new(create_test_integer())
     }
 
-    fn create_test_return_statement() -> statements::Return {
+    pub fn create_test_return_statement() -> statements::Return {
         statements::Return::new(Box::new(create_test_constant_expression()))
     }
 
-    fn create_test_function() -> Function {
+    pub fn create_test_function() -> Function {
         let identifier = String::from("main");
         let body: Vec<Box<dyn Statement>> = vec![Box::new(create_test_return_statement())];
         let return_type = Type::Integer(0);
         Function::new(return_type, identifier, body)
     }
 
-    fn create_test_program() -> Program {
+    pub fn create_test_program() -> Program {
         Program::new(create_test_function())
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::test_utils::*;
+    use indoc::indoc;
 
     #[test]
     fn test_integer_variable() {
