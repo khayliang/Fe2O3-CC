@@ -14,8 +14,6 @@ pub enum Token<'a> {
 pub struct TokenFactory {}
 impl TokenFactory {
     fn create(token: &str) -> Token {
-        let token_string = token.to_string();
-
         if is_string_number(token) {
             return Token::Integer(token);
         } else if token.len() == 1 {
