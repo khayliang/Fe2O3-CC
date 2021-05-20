@@ -45,12 +45,6 @@ fn is_string_number(s: &String) -> bool {
     s.chars().all(char::is_numeric)
 }
 
-fn string_to_number(s: &String) -> i32 {
-    let mut error_str = "Invalid_syntax: ".to_string();
-    error_str.push_str(s);
-    s.parse::<i32>().expect(&error_str)
-}
-
 // TODO: cleanup tokenize function
 pub fn tokenize(code: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
