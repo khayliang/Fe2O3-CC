@@ -1,9 +1,9 @@
 // TODO: Use Number token instead of Integer to support decimals
 #[derive(Debug, PartialEq, Clone)]
-pub enum Token {
-    Keyword(String),
-    Identifier(String),
-    Integer(String),
+pub enum Token<'a> {
+    Keyword(&'a str),
+    Identifier(&'a str),
+    Integer(&'a str),
     OpenBrace,
     CloseBrace,
     OpenBracket,
@@ -16,10 +16,10 @@ impl TokenFactory {
     fn create(token: &str) -> Token {
         let token_string = token.to_string();
 
-        if is_string_number(&token_string) {
-            return Token::Integer(token_string);
-        } else if token_string.len() == 1 {
-            let token_ch = token_string.chars().nth(0).unwrap();
+        if is_string_number(token) {
+            return Token::Integer(token);
+        } else if token.len() == 1 {
+            let token_ch = token.chars().nth(0).unwrap();
             match token_ch {
                 '{' => return Token::OpenBrace,
                 '}' => return Token::CloseBrace,
@@ -31,17 +31,17 @@ impl TokenFactory {
         } else {
             // match to keyword
             match token {
-                "int" => return Token::Keyword(token_string),
-                "return" => return Token::Keyword(token_string),
+                "int" => return Token::Keyword(token),
+                "return" => return Token::Keyword(token),
                 _ => {}
             }
             // all other strings are identifiers
-            return Token::Identifier(token_string);
+            return Token::Identifier(token);
         }
     }
 }
 
-fn is_string_number(s: &String) -> bool {
+fn is_string_number(s: &str) -> bool {
     s.chars().all(char::is_numeric)
 }
 
@@ -97,10 +97,7 @@ mod tests {
     #[test]
     fn test_token_factory_builds_integer_constants() {
         let tokens = ["2", "23"];
-        let enums = vec![
-            Token::Integer("2".to_string()),
-            Token::Integer("23".to_string()),
-        ];
+        let enums = vec![Token::Integer("2"), Token::Integer("23")];
         for (idx, token_str) in tokens.iter().enumerate() {
             assert_eq!(&enums[idx], &TokenFactory::create(token_str));
         }
@@ -108,10 +105,7 @@ mod tests {
     #[test]
     fn test_token_factory_builds_identifiers() {
         let identifier_tokens = ["main", "some_name"];
-        let identifier_enums = vec![
-            Token::Identifier("main".to_string()),
-            Token::Identifier("some_name".to_string()),
-        ];
+        let identifier_enums = vec![Token::Identifier("main"), Token::Identifier("some_name")];
         for (idx, token_str) in identifier_tokens.iter().enumerate() {
             assert_eq!(&identifier_enums[idx], &TokenFactory::create(token_str));
         }
@@ -119,10 +113,7 @@ mod tests {
     #[test]
     fn test_token_factory_builds_keywords() {
         let keyword_tokens = ["int", "return"];
-        let keyword_enums = vec![
-            Token::Keyword("int".to_string()),
-            Token::Keyword("return".to_string()),
-        ];
+        let keyword_enums = vec![Token::Keyword("int"), Token::Keyword("return")];
         for (idx, token_str) in keyword_tokens.iter().enumerate() {
             assert_eq!(&keyword_enums[idx], &TokenFactory::create(token_str));
         }
@@ -131,13 +122,13 @@ mod tests {
     fn test_token_builder_builds_return_2() {
         let tokens = ["int", "main", "(", ")", "{", "return", "2", ";", "}"];
         let correct_tokens = vec![
-            Token::Keyword("int".to_string()),
-            Token::Identifier("main".to_string()),
+            Token::Keyword("int"),
+            Token::Identifier("main"),
             Token::OpenBracket,
             Token::CloseBracket,
             Token::OpenBrace,
-            Token::Keyword("return".to_string()),
-            Token::Integer("2".to_string()),
+            Token::Keyword("return"),
+            Token::Integer("2"),
             Token::Semicolon,
             Token::CloseBrace,
         ];
@@ -162,13 +153,13 @@ mod tests {
             }
         ";
         let correct_tokens = vec![
-            Token::Keyword("int".to_string()),
-            Token::Identifier("main".to_string()),
+            Token::Keyword("int"),
+            Token::Identifier("main"),
             Token::OpenBracket,
             Token::CloseBracket,
             Token::OpenBrace,
-            Token::Keyword("return".to_string()),
-            Token::Integer("2".to_string()),
+            Token::Keyword("return"),
+            Token::Integer("2"),
             Token::Semicolon,
             Token::CloseBrace,
         ];
