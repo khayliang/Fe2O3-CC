@@ -1,19 +1,33 @@
 use crate::syntax::*;
 use crate::tokenizer::Token;
 
+struct TokenIteratorContainer<'a> {
+    iterator: std::iter::Peekable<std::slice::Iter<'a, Token<'a>>>,
+}
+
+impl<'a> TokenIteratorContainer<'a> {
+    fn new(token: &'a Vec<Token>) -> TokenIteratorContainer<'a> {
+        let iterator = token.iter().peekable();
+        TokenIteratorContainer { iterator }
+    }
+    fn get_iter(&mut self) -> &mut std::iter::Peekable<std::slice::Iter<'a, Token<'a>>> {
+        &mut self.iterator
+    }
+}
+
 fn string_to_number(s: &str) -> i32 {
     let mut error_str = "Invalid_syntax: ".to_string();
     error_str.push_str(s);
     s.parse::<i32>().expect(&error_str)
 }
 
-fn parse_expression(tokens: &[Token]) -> Result<Box<dyn Expression>, String> {
-    let mut tokens_iter = tokens.iter().enumerate().peekable();
-    while let Some((_, token)) = tokens_iter.next() {
+fn parse_expression(iterator: &mut TokenIteratorContainer) -> Result<Box<dyn Expression>, String> {
+    let mut tokens_iter = iterator.get_iter();
+    while let Some(token) = tokens_iter.next() {
         match token {
             Token::Integer(val) => {
                 let int_variable = Type::Integer(string_to_number(&val));
-                let (_, next_token) = *tokens_iter.peek().unwrap();
+                let next_token = *tokens_iter.peek().unwrap();
                 if *next_token == Token::Semicolon {
                     return Ok(Box::new(expressions::Constant::new(int_variable)));
                 }
@@ -74,9 +88,19 @@ mod tests {
     }
 
     #[test]
+    fn test_token_iterator() {
+        let tokens: Vec<Token> = vec![Token::Integer("2"), Token::Semicolon];
+        let mut token_iterator = TokenIteratorContainer::new(&tokens);
+        let iter = token_iterator.get_iter();
+        assert_eq!(&tokens[0], iter.next().unwrap());
+        assert_eq!(&tokens[1], iter.next().unwrap());
+    }
+
+    #[test]
     fn test_parse_expression_tokens() {
         let tokens: Vec<Token> = vec![Token::Integer("2"), Token::Semicolon];
-        let expression: Box<dyn Expression> = match parse_expression(&tokens) {
+        let mut token_iterator = TokenIteratorContainer::new(&tokens);
+        let expression: Box<dyn Expression> = match parse_expression(&mut token_iterator) {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
         };
