@@ -23,20 +23,14 @@ fn string_to_number(s: &str) -> i32 {
 
 fn parse_keyword_to_variable_type(token: &Token) -> Result<Type, String> {
     match token {
-        Token::Keyword(keyword) => {
-            match *keyword {
-                "int" => {
-                    return Ok(Type::Integer(0))
-                }
-                _ => {
-                    return Err(format!("Invalid syntax: {}", keyword))
-                }
-            }
+        Token::Keyword(keyword) => match *keyword {
+            "int" => return Ok(Type::Integer(0)),
+            _ => return Err(format!("Invalid syntax: {}", keyword)),
         },
         _ => {
             let mut msg = String::from("Invalid syntax: ");
             msg.push_str(&format!("{:?}", token));
-            return Err(msg)
+            return Err(msg);
         }
     }
 }
@@ -117,13 +111,9 @@ mod tests {
 
     #[test]
     fn test_parse_keyword_token_to_variable_type() {
-        let tokens: Vec<Token> = vec![
-            Token::Keyword("int"), 
-        ];
+        let tokens: Vec<Token> = vec![Token::Keyword("int")];
 
-        let correct_types: Vec<Type> = vec![
-            Type::Integer(0),
-        ];
+        let correct_types: Vec<Type> = vec![Type::Integer(0)];
 
         for (idx, token) in tokens.iter().enumerate() {
             let variable_type: Type = parse_keyword_to_variable_type(&token).unwrap();
@@ -131,7 +121,6 @@ mod tests {
             let test_format = format!("{}", variable_type);
             assert_eq!(correct_format, test_format);
         }
-
     }
 
     #[test]

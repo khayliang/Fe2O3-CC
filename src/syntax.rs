@@ -89,7 +89,6 @@ pub mod statements {
         }
     }
 
-
     pub struct Function {
         pub return_type: Type,
         pub name: String,
@@ -177,8 +176,8 @@ pub mod test_utils {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::test_utils::*;
+    use super::*;
     use indoc::indoc;
 
     #[test]
