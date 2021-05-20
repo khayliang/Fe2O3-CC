@@ -88,49 +88,52 @@ pub mod statements {
             write!(f, "{}", formatted_string)
         }
     }
+
+
+    pub struct Function {
+        pub return_type: Type,
+        pub name: String,
+        pub body: Vec<Box<dyn Statement>>,
+    }
+    impl Function {
+        pub fn new(return_type: Type, name: String, body: Vec<Box<dyn Statement>>) -> Function {
+            Function {
+                return_type,
+                name: name,
+                body,
+            }
+        }
+    }
+    impl Node for Function {
+        fn type_of(&self) -> &'static str {
+            "Function"
+        }
+    }
+    impl Statement for Function {}
+    impl fmt::Display for Function {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            let mut formatted_statements_body = String::new();
+            for statement in self.body.iter() {
+                let formatted_statement = format!("{}\n", statement);
+                formatted_statements_body.push_str(&formatted_statement);
+            }
+            formatted_statements_body = indent(&formatted_statements_body, "        ");
+            let formatted_function = format!(
+                "Function {} {}:\n    body:\n{}",
+                self.return_type.type_of(),
+                self.name,
+                formatted_statements_body
+            );
+            write!(f, "{}", formatted_function)
+        }
+    }
 }
 
-pub struct Function {
-    pub return_type: Type,
-    pub name: String,
-    pub body: Vec<Box<dyn Statement>>,
-}
-impl Function {
-    pub fn new(return_type: Type, name: String, body: Vec<Box<dyn Statement>>) -> Function {
-        Function {
-            return_type,
-            name: name,
-            body,
-        }
-    }
-}
-impl Node for Function {
-    fn type_of(&self) -> &'static str {
-        "Function"
-    }
-}
-impl fmt::Display for Function {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut formatted_statements_body = String::new();
-        for statement in self.body.iter() {
-            let formatted_statement = format!("{}\n", statement);
-            formatted_statements_body.push_str(&formatted_statement);
-        }
-        formatted_statements_body = indent(&formatted_statements_body, "        ");
-        let formatted_function = format!(
-            "Function {} {}:\n    body:\n{}",
-            self.return_type.type_of(),
-            self.name,
-            formatted_statements_body
-        );
-        write!(f, "{}", formatted_function)
-    }
-}
 pub struct Program {
-    pub root: Function,
+    pub root: statements::Function,
 }
 impl Program {
-    pub fn new(root: Function) -> Program {
+    pub fn new(root: statements::Function) -> Program {
         Program { root }
     }
 }
@@ -160,11 +163,11 @@ pub mod test_utils {
         statements::Return::new(Box::new(create_test_constant_expression()))
     }
 
-    pub fn create_test_function() -> Function {
+    pub fn create_test_function() -> statements::Function {
         let identifier = String::from("main");
         let body: Vec<Box<dyn Statement>> = vec![Box::new(create_test_return_statement())];
         let return_type = Type::Integer(0);
-        Function::new(return_type, identifier, body)
+        statements::Function::new(return_type, identifier, body)
     }
 
     pub fn create_test_program() -> Program {
