@@ -1,8 +1,9 @@
 use crate::syntax::*;
 use crate::tokenizer::Token;
 
+/*
 pub struct TokenIteratorContainer<'a> {
-    iterator: std::iter::Peekable<std::slice::Iter<'a, Token<'a>>>,
+    iterator: &'a std::iter::Peekable<std::slice::Iter<'a, Token<'a>>>,
 }
 
 impl<'a> TokenIteratorContainer<'a> {
@@ -14,6 +15,8 @@ impl<'a> TokenIteratorContainer<'a> {
         &mut self.iterator
     }
 }
+*/
+type TokenIterator<'a> = std::iter::Peekable<std::vec::IntoIter<Token<'a>>>;
 
 fn string_to_number(s: &str) -> i32 {
     let mut error_str = "Invalid_syntax: ".to_string();
@@ -35,16 +38,18 @@ fn parse_keyword_to_variable_type(token: &Token) -> Result<Type, String> {
     }
 }
 
-fn parse_expression(iterator: &mut TokenIteratorContainer) -> Result<Box<dyn Expression>, String> {
-    let mut tokens_iter = iterator.get_iter();
+fn parse_expression(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Expression>, String> {
     // TODO: refactor this to be more idiomatic and rusty
     while let Some(token) = tokens_iter.next() {
         match token {
             Token::Integer(val) => {
                 let int_variable = Type::Integer(string_to_number(&val));
-                let next_token = *tokens_iter.peek().unwrap();
-                if *next_token == Token::Semicolon {
-                    return Ok(Box::new(expressions::Constant::new(int_variable)));
+                let next_token = tokens_iter.next().unwrap();
+                match next_token {
+                    Token::Semicolon => {
+                        return Ok(Box::new(expressions::Constant::new(int_variable)))
+                    }
+                    _ => return Err(String::from("Missing semicolon")),
                 }
             }
             _ => {
@@ -57,22 +62,56 @@ fn parse_expression(iterator: &mut TokenIteratorContainer) -> Result<Box<dyn Exp
     return Err(String::from("Something went wrong"));
 }
 
-fn parse_statement(iterator: &mut TokenIteratorContainer) -> Result<Box<dyn Statement>, String> {
-    let tokens_iter = iterator.get_iter();
+fn parse_statement(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Statement>, String> {
     // TODO: refactor this to be more idiomatic and rusty
     while let Some(token) = tokens_iter.next() {
         match token {
-            Token::Keyword(keyword) => match *keyword {
+            Token::Keyword(keyword) => match keyword {
                 "return" => {
-                    let expression = match parse_expression(iterator) {
+                    let expression = match parse_expression(tokens_iter) {
                         Ok(expression) => expression,
                         Err(msg) => return Err(msg),
                     };
                     let return_statement = Box::new(statements::Return::new(expression));
                     return Ok(return_statement);
                 }
-                "function" => {
-                    let return_type = *tokens_iter.peek().unwrap();
+                "int" => {
+                    let statement_type = Type::Integer(0);
+                    let function_name = tokens_iter.next().unwrap();
+                    let function_name = match function_name {
+                        Token::Identifier(name) => name,
+                        _ => return Err(format!("Invalid syntax {:?}", function_name)),
+                    };
+                    if !matches!(tokens_iter.next().unwrap(), Token::OpenBracket)
+                        || !matches!(tokens_iter.next().unwrap(), Token::CloseBracket)
+                    {
+                        return Err(format!(
+                            "Missing function parameters for function {}",
+                            function_name
+                        ));
+                    }
+                    if !matches!(tokens_iter.next().unwrap(), Token::OpenBrace) {
+                        return Err(format!(
+                            "Missing function body for function {}",
+                            function_name
+                        ));
+                    }
+
+                    let mut body: Vec<Box<dyn Statement>> = vec![];
+                    while !matches!(tokens_iter.peek().unwrap(), Token::CloseBrace) {
+                        let statement = match parse_statement(tokens_iter) {
+                            Ok(val) => val,
+                            Err(msg) => return Err(msg),
+                        };
+                        body.push(statement);
+                    }
+                    tokens_iter.next();
+                    let function_statement = Box::new(statements::Function::new(
+                        statement_type,
+                        String::from(function_name),
+                        body,
+                    ));
+                    return Ok(function_statement);
                 }
                 _ => {
                     let mut msg = String::from("Invalid syntax: ");
@@ -89,25 +128,21 @@ fn parse_statement(iterator: &mut TokenIteratorContainer) -> Result<Box<dyn Stat
     }
     return Err(String::from("Something went wrong"));
 }
-
 /*
-fn parse(tokens: Vec<Token>) -> Program {
-
+pub fn parse_program_tokens(tokens: &mut Vec<Token>) -> Result<Program, String> {
+    let mut tokens = *tokens;
+    let mut token_iterator = tokens.into_iter().peekable();
+    let main_function = match parse_statement(&mut token_iterator){
+        Ok(main_statement) => {
+            if main_statement.type_of() != "Function" { return Err(String::from("No main function found.")); }
+            let main_function: statements::Function = main_statement;
+        }
+    };
 }
 */
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_token_iterator_container() {
-        let tokens: Vec<Token> = vec![Token::Integer("2"), Token::Semicolon];
-        let mut token_iterator = TokenIteratorContainer::new(&tokens);
-        let iter = token_iterator.get_iter();
-        assert_eq!(&tokens[0], iter.next().unwrap());
-        assert_eq!(&tokens[1], iter.next().unwrap());
-    }
 
     #[test]
     fn test_parse_keyword_token_to_variable_type() {
@@ -126,7 +161,7 @@ mod tests {
     #[test]
     fn test_parse_expression_tokens() {
         let tokens: Vec<Token> = vec![Token::Integer("2"), Token::Semicolon];
-        let mut token_iterator = TokenIteratorContainer::new(&tokens);
+        let mut token_iterator = tokens.into_iter().peekable();
         let expression: Box<dyn Expression> = match parse_expression(&mut token_iterator) {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
@@ -144,7 +179,7 @@ mod tests {
             Token::Integer("2"),
             Token::Semicolon,
         ];
-        let mut token_iterator = TokenIteratorContainer::new(&tokens);
+        let mut token_iterator = tokens.into_iter().peekable();
         let return_statement: Box<dyn Statement> = match parse_statement(&mut token_iterator) {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
@@ -155,7 +190,8 @@ mod tests {
         assert_eq!(correct_format, test_format);
     }
 
-    fn test_parse_function__statement_tokens() {
+    #[test]
+    fn test_parse_function_statement_tokens() {
         let tokens: Vec<Token> = vec![
             Token::Keyword("int"),
             Token::Identifier("main"),
@@ -167,7 +203,7 @@ mod tests {
             Token::Semicolon,
             Token::CloseBrace,
         ];
-        let mut token_iterator = TokenIteratorContainer::new(&tokens);
+        let mut token_iterator = tokens.into_iter().peekable();
         let function_node: Box<dyn Statement> = match parse_statement(&mut token_iterator) {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
@@ -177,25 +213,22 @@ mod tests {
         let test_format = format!("{}", function_node);
         assert_eq!(correct_format, test_format);
     }
-
-    #[test]
-    fn test_parse_all_tokens_into_program_with_main() {
-        let tokens: Vec<Token> = vec![
-            Token::Keyword("int"),
-            Token::Identifier("main"),
-            Token::OpenBracket,
-            Token::CloseBracket,
-            Token::OpenBrace,
-            Token::Keyword("return"),
-            Token::Integer("2"),
-            Token::Semicolon,
-            Token::CloseBrace,
-        ];
-        /*
-        let program: Program = super::parse_program(tokens);
-        let main_function: Function = program.root;
-        assert_eq!(main_function.name, String::from("main"));
-        assert!(std::mem::discriminant(&main_function.return_type) == std::mem::discriminant(&Type::Integer(0)));
-        */
-    }
+    /*
+        #[test]
+        fn test_parse_all_tokens_into_program_with_main() {
+            let tokens: Vec<Token> = vec![
+                Token::Keyword("int"),
+                Token::Identifier("main"),
+                Token::OpenBracket,
+                Token::CloseBracket,
+                Token::OpenBrace,
+                Token::Keyword("return"),
+                Token::Integer("2"),
+                Token::Semicolon,
+                Token::CloseBrace,
+            ];
+            let program: Program = parse_program_tokens(tokens);
+            assert_eq!(format!("{}", test_utils::create_test_program()), format!("{}", program));
+        }
+    */
 }

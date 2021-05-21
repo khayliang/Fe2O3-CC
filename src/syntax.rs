@@ -6,6 +6,7 @@ pub trait Node: fmt::Display {
     fn type_of(&self) -> &'static str;
 }
 
+// TODO: Create a variable struct that has type Type Enum
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Type {
     Integer(i32),
@@ -32,6 +33,7 @@ impl fmt::Display for Type {
     }
 }
 
+//TODO: Use enum for all expression types
 pub trait Expression: Node {
     fn evaluate(&self) -> Type;
 }
@@ -65,6 +67,7 @@ pub mod expressions {
         }
     }
 }
+//TODO: Use enum for all statement types
 pub trait Statement: Node {}
 pub mod statements {
     use super::*;
