@@ -215,4 +215,28 @@ mod tests {
             format!("{}", program)
         );
     }
+
+    #[test]
+    #[should_panic]
+    fn test_parse_tokens_into_program_without_main_function() {
+        let tokens: Vec<Token> = vec![
+            Token::Keyword("int"),
+            Token::Identifier("im_not_a_main"),
+            Token::OpenBracket,
+            Token::CloseBracket,
+            Token::OpenBrace,
+            Token::Keyword("return"),
+            Token::Integer("2"),
+            Token::Semicolon,
+            Token::CloseBrace,
+        ];
+        let program: Program = match parse_program_tokens(tokens) {
+            Ok(program) => program,
+            Err(msg) => panic!("{}", msg),
+        };
+        assert_eq!(
+            format!("{}", test_utils::create_test_program()),
+            format!("{}", program)
+        );
+    }
 }
