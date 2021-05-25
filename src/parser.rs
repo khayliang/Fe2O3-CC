@@ -62,7 +62,7 @@ fn parse_expression(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Expressio
     return Err(String::from("Something went wrong"));
 }
 
-fn parse_statement(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Statement>, String> {
+fn parse_statement(tokens_iter: &mut TokenIterator) -> Result<Statement, String> {
     // TODO: refactor this to be more idiomatic and rusty
     while let Some(token) = tokens_iter.next() {
         match token {
@@ -72,7 +72,7 @@ fn parse_statement(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Statement>
                         Ok(expression) => expression,
                         Err(msg) => return Err(msg),
                     };
-                    let return_statement = Box::new(statements::Return::new(expression));
+                    let return_statement = statements::Return::new(expression);
                     return Ok(return_statement);
                 }
                 "int" => {
@@ -97,7 +97,7 @@ fn parse_statement(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Statement>
                         ));
                     }
 
-                    let mut body: Vec<Box<dyn Statement>> = vec![];
+                    let mut body: Vec<Statement> = vec![];
                     while !matches!(tokens_iter.peek().unwrap(), Token::CloseBrace) {
                         let statement = match parse_statement(tokens_iter) {
                             Ok(val) => val,
@@ -106,11 +106,11 @@ fn parse_statement(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Statement>
                         body.push(statement);
                     }
                     tokens_iter.next();
-                    let function_statement = Box::new(statements::Function::new(
+                    let function_statement = statements::Function::new(
                         statement_type,
                         String::from(function_name),
                         body,
-                    ));
+                    );
                     return Ok(function_statement);
                 }
                 _ => {
@@ -180,7 +180,7 @@ mod tests {
             Token::Semicolon,
         ];
         let mut token_iterator = tokens.into_iter().peekable();
-        let return_statement: Box<dyn Statement> = match parse_statement(&mut token_iterator) {
+        let return_statement: Statement = match parse_statement(&mut token_iterator) {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
         };
@@ -204,7 +204,7 @@ mod tests {
             Token::CloseBrace,
         ];
         let mut token_iterator = tokens.into_iter().peekable();
-        let function_node: Box<dyn Statement> = match parse_statement(&mut token_iterator) {
+        let function_node: Statement = match parse_statement(&mut token_iterator) {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
         };

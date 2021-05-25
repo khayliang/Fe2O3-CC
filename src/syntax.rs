@@ -68,26 +68,41 @@ pub mod expressions {
     }
 }
 //TODO: Use enum for all statement types
-pub trait Statement: Node {}
+pub enum Statement {
+    Function(statements::Function),
+    Return(statements::Return)
+}
+impl Node for Statement {
+    fn type_of(&self) -> &'static str {
+        match self {
+            Self::Function(_) => "Function",
+            Self::Return(_) => "Return",
+        }
+    }
+}
+impl fmt::Display for Statement {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Function(val) =>  write!(f, "{}", val),
+            Self::Return(val) => write!(f, "{}", val),
+        }       
+    }
+}
+
 pub mod statements {
     use super::*;
     pub struct Return {
         pub expression: Box<dyn Expression>,
     }
     impl Return {
-        pub fn new(expression: Box<dyn Expression>) -> Return {
-            Return { expression }
+        pub fn new(expression: Box<dyn Expression>) -> Statement {
+            Statement::Return(Return { expression })
         }
     }
-    impl Node for Return {
-        fn type_of(&self) -> &'static str {
-            "Return"
-        }
-    }
-    impl Statement for Return {}
+
     impl fmt::Display for Return {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            let formatted_string = format!("{} {}", self.type_of(), self.expression);
+            let formatted_string = format!("Return {}", self.expression);
             write!(f, "{}", formatted_string)
         }
     }
@@ -95,23 +110,17 @@ pub mod statements {
     pub struct Function {
         pub return_type: Type,
         pub name: String,
-        pub body: Vec<Box<dyn Statement>>,
+        pub body: Vec<Statement>,
     }
     impl Function {
-        pub fn new(return_type: Type, name: String, body: Vec<Box<dyn Statement>>) -> Function {
-            Function {
+        pub fn new(return_type: Type, name: String, body: Vec<Statement>) -> Statement {
+            Statement::Function(Function {
                 return_type,
                 name: name,
                 body,
-            }
+            })
         }
     }
-    impl Node for Function {
-        fn type_of(&self) -> &'static str {
-            "Function"
-        }
-    }
-    impl Statement for Function {}
     impl fmt::Display for Function {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             let mut formatted_statements_body = String::new();
@@ -135,8 +144,13 @@ pub struct Program {
     pub root: statements::Function,
 }
 impl Program {
-    pub fn new(root: statements::Function) -> Program {
-        Program { root }
+    pub fn new(main_statement: Statement) -> Program {
+        match main_statement {
+            Statement::Function(func) => {
+                Program { root: func }
+            }
+            _ => panic!("Missing main function!")
+        }
     }
 }
 impl Node for Program {
@@ -161,13 +175,13 @@ pub mod test_utils {
         expressions::Constant::new(create_test_integer())
     }
 
-    pub fn create_test_return_statement() -> statements::Return {
+    pub fn create_test_return_statement() -> Statement {
         statements::Return::new(Box::new(create_test_constant_expression()))
     }
 
-    pub fn create_test_function() -> statements::Function {
+    pub fn create_test_function() -> Statement {
         let identifier = String::from("main");
-        let body: Vec<Box<dyn Statement>> = vec![Box::new(create_test_return_statement())];
+        let body: Vec<Statement> = vec![create_test_return_statement()];
         let return_type = Type::Integer(0);
         statements::Function::new(return_type, identifier, body)
     }
@@ -232,5 +246,12 @@ mod tests {
         "};
         let program_formatted: String = format!("{}", main_program);
         assert_eq!(expected_format, program_formatted);
+    }
+
+    #[test]
+    #[should_panic]
+    fn create_new_program_fails() {
+        let main_program = create_test_return_statement();
+        Program::new(main_program);
     }
 }
