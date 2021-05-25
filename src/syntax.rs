@@ -67,7 +67,7 @@ pub mod expressions {
         }
     }
 }
-//TODO: Use enum for all statement types
+
 pub enum Statement {
     Function(statements::Function),
     Return(statements::Return),

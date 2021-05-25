@@ -24,20 +24,6 @@ fn string_to_number(s: &str) -> i32 {
     s.parse::<i32>().expect(&error_str)
 }
 
-fn parse_keyword_to_variable_type(token: &Token) -> Result<Type, String> {
-    match token {
-        Token::Keyword(keyword) => match *keyword {
-            "int" => return Ok(Type::Integer(0)),
-            _ => return Err(format!("Invalid syntax: {}", keyword)),
-        },
-        _ => {
-            let mut msg = String::from("Invalid syntax: ");
-            msg.push_str(&format!("{:?}", token));
-            return Err(msg);
-        }
-    }
-}
-
 fn parse_expression(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Expression>, String> {
     // TODO: refactor this to be more idiomatic and rusty
     while let Some(token) = tokens_iter.next() {
@@ -128,35 +114,28 @@ fn parse_statement(tokens_iter: &mut TokenIterator) -> Result<Statement, String>
     }
     return Err(String::from("Something went wrong"));
 }
-/*
-pub fn parse_program_tokens(tokens: &mut Vec<Token>) -> Result<Program, String> {
-    let mut tokens = *tokens;
+
+pub fn parse_program_tokens(tokens: Vec<Token>) -> Result<Program, String> {
     let mut token_iterator = tokens.into_iter().peekable();
-    let main_function = match parse_statement(&mut token_iterator){
-        Ok(main_statement) => {
-            if main_statement.type_of() != "Function" { return Err(String::from("No main function found.")); }
-            let main_function: statements::Function = main_statement;
-        }
+    let main_function: Statement = match parse_statement(&mut token_iterator) {
+        Ok(main_statement) => match &main_statement {
+            Statement::Function(val) => {
+                if val.name != "main" {
+                    return Err("Missing main function".to_string());
+                }
+                main_statement
+            }
+            _ => return Err("Missing main function".to_string()),
+        },
+        Err(msg) => return Err(msg),
     };
+    let main_program: Program = Program::new(main_function);
+    return Ok(main_program);
 }
-*/
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_parse_keyword_token_to_variable_type() {
-        let tokens: Vec<Token> = vec![Token::Keyword("int")];
-
-        let correct_types: Vec<Type> = vec![Type::Integer(0)];
-
-        for (idx, token) in tokens.iter().enumerate() {
-            let variable_type: Type = parse_keyword_to_variable_type(&token).unwrap();
-            let correct_format = format!("{}", correct_types[idx]);
-            let test_format = format!("{}", variable_type);
-            assert_eq!(correct_format, test_format);
-        }
-    }
 
     #[test]
     fn test_parse_expression_tokens() {
@@ -213,22 +192,27 @@ mod tests {
         let test_format = format!("{}", function_node);
         assert_eq!(correct_format, test_format);
     }
-    /*
-        #[test]
-        fn test_parse_all_tokens_into_program_with_main() {
-            let tokens: Vec<Token> = vec![
-                Token::Keyword("int"),
-                Token::Identifier("main"),
-                Token::OpenBracket,
-                Token::CloseBracket,
-                Token::OpenBrace,
-                Token::Keyword("return"),
-                Token::Integer("2"),
-                Token::Semicolon,
-                Token::CloseBrace,
-            ];
-            let program: Program = parse_program_tokens(tokens);
-            assert_eq!(format!("{}", test_utils::create_test_program()), format!("{}", program));
-        }
-    */
+
+    #[test]
+    fn test_parse_all_tokens_into_program_with_main() {
+        let tokens: Vec<Token> = vec![
+            Token::Keyword("int"),
+            Token::Identifier("main"),
+            Token::OpenBracket,
+            Token::CloseBracket,
+            Token::OpenBrace,
+            Token::Keyword("return"),
+            Token::Integer("2"),
+            Token::Semicolon,
+            Token::CloseBrace,
+        ];
+        let program: Program = match parse_program_tokens(tokens) {
+            Ok(program) => program,
+            Err(msg) => panic!("{}", msg),
+        };
+        assert_eq!(
+            format!("{}", test_utils::create_test_program()),
+            format!("{}", program)
+        );
+    }
 }
