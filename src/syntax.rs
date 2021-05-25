@@ -70,7 +70,7 @@ pub mod expressions {
 //TODO: Use enum for all statement types
 pub enum Statement {
     Function(statements::Function),
-    Return(statements::Return)
+    Return(statements::Return),
 }
 impl Node for Statement {
     fn type_of(&self) -> &'static str {
@@ -83,9 +83,9 @@ impl Node for Statement {
 impl fmt::Display for Statement {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Function(val) =>  write!(f, "{}", val),
+            Self::Function(val) => write!(f, "{}", val),
             Self::Return(val) => write!(f, "{}", val),
-        }       
+        }
     }
 }
 
@@ -146,10 +146,8 @@ pub struct Program {
 impl Program {
     pub fn new(main_statement: Statement) -> Program {
         match main_statement {
-            Statement::Function(func) => {
-                Program { root: func }
-            }
-            _ => panic!("Missing main function!")
+            Statement::Function(func) => Program { root: func },
+            _ => panic!("Missing main function!"),
         }
     }
 }
