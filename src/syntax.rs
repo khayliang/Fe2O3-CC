@@ -167,8 +167,8 @@ pub mod statements {
                 .rev()
                 .collect();
             let mut function_asm = formatdoc! {"
-                .globl _{name}
-                _{name}:
+                .globl {name}
+                {name}:
             ", name=self.name};
             asm_body.iter().for_each(|asm| function_asm.push_str(&asm));
             return function_asm;
@@ -294,8 +294,8 @@ mod tests {
                     Return Constant Integer<2>
         "};
         let expected_asm = indoc! {"
-            .globl _main
-            _main:
+            .globl main
+            main:
             movl $2, %eax
             ret
         "};
@@ -315,8 +315,8 @@ mod tests {
         let program_formatted: String = format!("{}", main_program);
         assert_eq!(expected_format, program_formatted);
         let expected_asm = indoc! {"
-            .globl _main
-            _main:
+            .globl main
+            main:
             movl $2, %eax
             ret
         "};
