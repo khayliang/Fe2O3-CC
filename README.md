@@ -6,6 +6,7 @@ Followed a bunch of random sources.
 - [Nora Sandler: Writing a C Compiler](https://norasandler.com/2017/11/29/Write-a-Compiler.html)
 - [An Incremental Approach to Compiler Construction](http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf)
 
+Ok I don't wanna do this anymore. The only thing this compiler can compile is a main function that returns a number.
 # Usage
 ```
 cargo run program.c
