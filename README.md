@@ -5,3 +5,8 @@ Followed a bunch of random sources.
 - [Super tiny C compiler](https://github.com/jamiebuilds/the-super-tiny-compiler)
 - [Nora Sandler: Writing a C Compiler](https://norasandler.com/2017/11/29/Write-a-Compiler.html)
 - [An Incremental Approach to Compiler Construction](http://scheme2006.cs.uchicago.edu/11-ghuloum.pdf)
+
+# Usage
+```
+cargo run program.c
+```
