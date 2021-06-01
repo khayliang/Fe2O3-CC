@@ -111,6 +111,8 @@ pub enum Statement {
     Function(statements::Function),
     Return(statements::Return),
 }
+trait StatementTrait: Node {}
+impl StatementTrait for Statement {}
 impl Node for Statement {
     fn type_of(&self) -> &'static str {
         match self {
@@ -133,7 +135,6 @@ impl fmt::Display for Statement {
         }
     }
 }
-trait StatementTrait: Node {}
 
 pub mod statements {
     use super::*;
