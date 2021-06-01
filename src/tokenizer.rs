@@ -9,6 +9,9 @@ pub enum Token<'a> {
     OpenBracket,
     CloseBracket,
     Semicolon,
+    Negation,
+    LogicalNegation,
+    BitwiseComplement,
 }
 
 pub struct TokenFactory {}
@@ -24,6 +27,9 @@ impl TokenFactory {
                 '(' => return Token::OpenBracket,
                 ')' => return Token::CloseBracket,
                 ';' => return Token::Semicolon,
+                '~' => return Token::BitwiseComplement,
+                '-' => return Token::Negation,
+                '!' => return Token::LogicalNegation,
                 _ => panic!("Invalid symbol"),
             }
         } else {
@@ -87,6 +93,15 @@ mod tests {
             Token::CloseBracket,
             Token::Semicolon,
         ];
+        for (idx, token_str) in tokens.iter().enumerate() {
+            assert_eq!(&enums[idx], &TokenFactory::create(token_str));
+        }
+    }
+
+    #[test]
+    fn test_token_factory_builds_unary_operations() {
+        let tokens = ["-", "~", "!"];
+        let enums = vec![Token::Negation, Token::BitwiseComplement, Token::LogicalNegation];
         for (idx, token_str) in tokens.iter().enumerate() {
             assert_eq!(&enums[idx], &TokenFactory::create(token_str));
         }
