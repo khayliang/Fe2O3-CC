@@ -134,7 +134,7 @@ pub fn parse_program_tokens(tokens: Vec<Token>) -> Result<Program, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use crate::syntax::tests::*;
     #[test]
     fn test_parse_expression_tokens() {
         let tokens: Vec<Token> = vec![Token::Integer("2"), Token::Semicolon];

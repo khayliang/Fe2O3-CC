@@ -101,7 +101,11 @@ mod tests {
     #[test]
     fn test_token_factory_builds_unary_operations() {
         let tokens = ["-", "~", "!"];
-        let enums = vec![Token::Negation, Token::BitwiseComplement, Token::LogicalNegation];
+        let enums = vec![
+            Token::Negation,
+            Token::BitwiseComplement,
+            Token::LogicalNegation,
+        ];
         for (idx, token_str) in tokens.iter().enumerate() {
             assert_eq!(&enums[idx], &TokenFactory::create(token_str));
         }
