@@ -40,10 +40,39 @@ impl fmt::Display for Type {
     }
 }
 
-//TODO: Use enum for all expression types
-pub trait Expression: Node {
+pub enum Expression {
+    Constant(expressions::Constant),
+}
+pub trait ExpressionTrait: Node {
     fn evaluate(&self) -> Type;
 }
+impl ExpressionTrait for Expression {
+    fn evaluate(&self) -> Type {
+        match self {
+            Self::Constant(val) => val.evaluate(),
+        }
+    }
+}
+impl Node for Expression {
+    fn type_of(&self) -> &'static str {
+        match self {
+            Self::Constant(val) => val.type_of(),
+        }
+    }
+    fn to_asm(&self) -> String {
+        match self {
+            Self::Constant(val) => val.to_asm(),
+        }
+    }
+}
+impl fmt::Display for Expression {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Constant(val) => write!(f, "{}", val),
+        }
+    }
+}
+
 pub mod expressions {
     use super::*;
 
@@ -52,8 +81,8 @@ pub mod expressions {
         value: Type,
     }
     impl Constant {
-        pub fn new(value: Type) -> Constant {
-            Constant { value }
+        pub fn new(value: Type) -> Expression {
+            Expression::Constant(Constant { value })
         }
     }
     impl Node for Constant {
@@ -64,7 +93,7 @@ pub mod expressions {
             return self.value.to_asm();
         }
     }
-    impl Expression for Constant {
+    impl ExpressionTrait for Constant {
         fn evaluate(&self) -> Type {
             return self.value;
         }
@@ -109,10 +138,10 @@ trait StatementTrait: Node {}
 pub mod statements {
     use super::*;
     pub struct Return {
-        pub expression: Box<dyn Expression>,
+        pub expression: Expression,
     }
     impl Return {
-        pub fn new(expression: Box<dyn Expression>) -> Statement {
+        pub fn new(expression: Expression) -> Statement {
             Statement::Return(Return { expression })
         }
     }
@@ -225,12 +254,12 @@ pub mod test_utils {
         Type::Integer(2)
     }
 
-    pub fn create_test_constant_expression() -> expressions::Constant {
+    pub fn create_test_constant_expression() -> Expression {
         expressions::Constant::new(create_test_integer())
     }
 
     pub fn create_test_return_statement() -> Statement {
-        statements::Return::new(Box::new(create_test_constant_expression()))
+        statements::Return::new(create_test_constant_expression())
     }
 
     pub fn create_test_function() -> Statement {

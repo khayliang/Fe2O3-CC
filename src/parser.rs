@@ -24,7 +24,7 @@ fn string_to_number(s: &str) -> i32 {
     s.parse::<i32>().expect(&error_str)
 }
 
-fn parse_expression(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Expression>, String> {
+fn parse_expression(tokens_iter: &mut TokenIterator) -> Result<Expression, String> {
     // TODO: refactor this to be more idiomatic and rusty
     while let Some(token) = tokens_iter.next() {
         match token {
@@ -32,9 +32,7 @@ fn parse_expression(tokens_iter: &mut TokenIterator) -> Result<Box<dyn Expressio
                 let int_variable = Type::Integer(string_to_number(&val));
                 let next_token = tokens_iter.next().unwrap();
                 match next_token {
-                    Token::Semicolon => {
-                        return Ok(Box::new(expressions::Constant::new(int_variable)))
-                    }
+                    Token::Semicolon => return Ok(expressions::Constant::new(int_variable)),
                     _ => return Err(String::from("Missing semicolon")),
                 }
             }
@@ -141,7 +139,7 @@ mod tests {
     fn test_parse_expression_tokens() {
         let tokens: Vec<Token> = vec![Token::Integer("2"), Token::Semicolon];
         let mut token_iterator = tokens.into_iter().peekable();
-        let expression: Box<dyn Expression> = match parse_expression(&mut token_iterator) {
+        let expression: Expression = match parse_expression(&mut token_iterator) {
             Ok(val) => val,
             Err(msg) => panic!("{}", msg),
         };
